@@ -1,0 +1,40 @@
+version: '3.4'
+name: k8s-training
+services:  
+  k8s-training-db:
+    container_name: k8s-training-db
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "myPa55w0rd"
+      ACCEPT_EULA: "Y"
+    restart: always
+    healthcheck:
+        test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P myPa55w0rd -Q 'SELECT 1' || exit 1"]
+        interval: 10s
+        retries: 10
+        start_period: 10s
+        timeout: 3s
+
+  k8s-training-api:
+    image: ${DOCKER_REGISTRY-}k8strainingapi
+    container_name: k8s-training-api
+    build:
+      context: .
+      dockerfile: K8s.Training.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:5001;http://+:5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__Default=Server=k8s-training-db;Database=users;User=sa;Password=myPa55w0rd;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;
+    ports:
+      - 5008:5000
+      - 5009:5001
+    volumes:
+      #- ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      #- ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - k8s-training-db #set the order in which services must start and stop
