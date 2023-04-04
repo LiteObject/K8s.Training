@@ -1,3 +1,4 @@
+using K8s.Training.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using Xunit.Abstractions;
