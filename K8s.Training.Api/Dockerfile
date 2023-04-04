@@ -3,8 +3,9 @@ WORKDIR /app
 
 RUN apt update
 RUN apt install -y curl
+
 # SQL Server trusted connection problem
-RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
+# RUN sed -i 's/TLSv1.2/TLSv1.0/g' /etc/ssl/openssl.cnf
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src

@@ -15,6 +15,9 @@ namespace K8s.Training.Api
                 _ = configuration.ReadFrom.Configuration(context.Configuration, "Serilog");
             });
 
+            // for debugging purpose
+            Serilog.Debugging.SelfLog.Enable(Console.Error);
+
             _ = builder.Services.AddDbContext<UsersDbContext>(options =>
             {
                 _ = options
@@ -22,7 +25,6 @@ namespace K8s.Training.Api
                     .LogTo(Console.WriteLine)
                     .EnableDetailedErrors()
                     .EnableSensitiveDataLogging();
-
             });
 
             _ = builder.Services.AddAutoMapper(typeof(Program));

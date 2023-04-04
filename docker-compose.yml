@@ -1,6 +1,17 @@
-version: '3.4'
+version: '3.8'
 name: k8s-training
 services:  
+
+  k8s-training-seq:
+    image: datalust/seq:latest
+    container_name: k8s-training-seq
+    restart: unless-stopped
+    ports:
+      - 5380:80   # UI
+      - 5341:5341 # Data ingest
+    environment:      
+      - ACCEPT_EULA=Y    
+
   k8s-training-db:
     container_name: k8s-training-db
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -16,6 +27,8 @@ services:
         retries: 10
         start_period: 10s
         timeout: 3s
+    depends_on:
+      - k8s-training-seq
 
   k8s-training-api:
     image: ${DOCKER_REGISTRY-}k8strainingapi
@@ -29,6 +42,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - ConnectionStrings__Default=Server=k8s-training-db;Database=users;User=sa;Password=myPa55w0rd;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;
+      - Serilog__WriteTo__1__Args__serverUrl=http://k8s-training-seq:5341
     ports:
       - 5008:5000
       - 5009:5001
